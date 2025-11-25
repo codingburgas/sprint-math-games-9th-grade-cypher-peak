@@ -99,3 +99,51 @@ private:
         }
         return filteredList;
     }
+    std::string pickRandomWord() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, wordList.size() - 1);
+        return wordList[dist(gen)];
+    }
+
+    std::string getUserGuess(int attempt) {
+        std::string guess;
+        while (true) {
+            std::cout << "Attempt " << attempt << "/" << maxAttempts << " (Enter " << wordLength << "-letter word): " << std::endl;
+            std::cin >> guess;
+
+            if (guess.size() == wordLength && isalphaString(guess)) {
+                std::transform(guess.begin(), guess.end(), guess.begin(), ::tolower);
+                return guess;
+            }
+
+            std::cout << "Invalid input. Enter a " << wordLength << "-letter word." << std::endl;
+        }
+    }
+
+    bool isalphaString(const std::string& s) {
+        return std::all_of(s.begin(), s.end(), ::isalpha);
+    }
+
+    std::vector<LetterState> evaluateGuess(const std::string& guess) {
+        std::vector<LetterState> result(wordLength, LetterState::Absent);
+        std::string temp = targetWord;
+
+        for (int i = 0; i < wordLength; i++) {
+            if (guess[i] == temp[i]) {
+                result[i] = LetterState::Correct;
+                temp[i] = '*';
+            }
+        }
+
+        for (int i = 0; i < wordLength; i++) {
+            if (result[i] == LetterState::Correct) continue;
+            auto pos = temp.find(guess[i]);
+            if (pos != std::string::npos) {
+                result[i] = LetterState::Present;
+                temp[pos] = '*';
+            }
+        }
+
+        return result;
+    }
