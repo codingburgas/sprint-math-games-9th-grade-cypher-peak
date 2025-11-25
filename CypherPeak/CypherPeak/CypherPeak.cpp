@@ -147,3 +147,77 @@ private:
 
         return result;
     }
+    void printResult(const std::string& guess, const std::vector<LetterState>& result) {
+        for (int i = 0; i < wordLength; i++) {
+            if (result[i] == LetterState::Correct) {
+                std::cout << "\033[42m\033[97m " << guess[i] << " \033[0m";
+            }
+            else if (result[i] == LetterState::Present) {
+                std::cout << "\033[43m\033[97m " << guess[i] << " \033[0m";
+            }
+            else {
+                std::cout << "\033[100m\033[97m " << guess[i] << " \033[0m";
+            }
+        }
+        std::cout << std::endl;
+    }
+};
+int main() {
+    std::vector<std::string> dictionary = {
+        "apple", "brave", "cable", "trace", "light", "stone", "sound", "water", "plane", "point",
+        "grape", "fruit", "house", "chair", "table", "dream", "quick", "watch", "party", "smile",
+        "ten", "cat", "dog", "sun",
+        "jinx", "four", "word",
+        "sassy", "occur",
+        "abduct", "bright", "planet",
+    };
+
+    int choice;
+    bool running = true;
+    while (running) {
+        std::cout << "=================================================================" << std::endl;
+        std::cout << "|                          WORDLE MENU                          |" << std::endl;
+        std::cout << "=================================================================" << std::endl;
+        std::cout << "1. Play Classic Wordle (5-letter, 6 attempts, Duplicates OK)" << std::endl;
+        std::cout << "2. Play 4-Letter Hard Mode (7 attempts, No duplicates in target)" << std::endl;
+        std::cout << "3. Play 6-Letter Challenge (6 attempts)" << std::endl;
+        std::cout << "4. Exit Game" << std::endl;
+        std::cout << "-----------------------------------------------------------------" << std::endl;
+        std::cout << "Enter your choice (1-4): " << std::endl;
+
+        if (!(std::cin >> choice)) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            choice = 0;
+        }
+        switch (choice) {
+        case 1: {
+            Wordle game(dictionary);
+            game.run();
+            break;
+        }
+        case 2: {
+            Wordle game(dictionary, 4, 7, false);
+            game.run();
+            break;
+        }
+        case 3: {
+            Wordle game(dictionary, 6);
+            game.run();
+            break;
+        }
+        case 4: {
+            running = false;
+            std::cout << "Exiting Wordle Game. Goodbye!" << std::endl;
+            break;
+        }
+        default: {
+            std::cout << "Invalid choice. Please enter a number between 1 and 4." << std::endl;
+            break;
+        }
+        }
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
