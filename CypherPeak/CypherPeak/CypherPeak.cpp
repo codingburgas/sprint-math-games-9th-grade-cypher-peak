@@ -48,4 +48,54 @@ public:
         std::cout << std::endl;
         std::cout << "You have " << maxAttempts << " attempts to guess the " << wordLength << "-letter word." << std::endl;
         std::cout << std::endl;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            std::string guess = getUserGuess(attempt);
+            auto result = evaluateGuess(guess);
+            printResult(guess, result);
 
+            if (guess == targetWord) {
+                std::cout << std::endl;
+                std::cout << "🎉 Correct! The word was: " << targetWord << std::endl;
+                return;
+            }
+        }
+
+        std::cout << std::endl;
+        std::cout << "❌ Out of attempts! The word was: " << targetWord << std::endl;
+    }
+
+private:
+    enum class LetterState { Correct, Present, Absent };
+
+    std::vector<std::string> wordList;
+    std::string targetWord;
+    int maxAttempts;
+    int wordLength;
+    bool allowDuplicatesInTarget;
+
+    bool hasDuplicateLetters(const std::string& word) const {
+        std::set<char> uniqueChars;
+        for (char c : word) {
+            if (uniqueChars.count(c)) {
+                return true;
+            }
+            uniqueChars.insert(c);
+        }
+        return false;
+    }
+
+    std::vector<std::string> filterAndValidateWordList(const std::vector<std::string>& words) {
+        std::vector<std::string> filteredList;
+        for (const auto& word : words) {
+            if (word.length() != wordLength) continue;
+
+            if (!allowDuplicatesInTarget && hasDuplicateLetters(word)) continue;
+
+            std::string lowerWord = word;
+            std::transform(lowerWord.begin(), lowerWord.end(), lowerWord.begin(), ::tolower);
+            if (isalphaString(lowerWord) && lowerWord.length() == wordLength) {
+                filteredList.push_back(lowerWord);
+            }
+        }
+        return filteredList;
+    }
