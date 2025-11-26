@@ -5,6 +5,28 @@
 #include <algorithm>
 #include <set>
 #include <limits>
+#include <cstdlib>
+
+void clearScreen() {
+    std::system("cls");
+}
+
+void printBanner() {
+    std::cout << "\033[32m";
+    std::cout << "=================================================================\n";
+    std::cout << R"(
+$$\      $$\  $$$$$$\  $$$$$$$\  $$$$$$$\  $$\       $$$$$$$$\
+$$ | $\  $$ |$$  __$$\ $$  __$$\ $$  __$$\ $$ |      $$  _____|
+$$ |$$$\ $$ |$$ /  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$ |      
+$$ $$ $$\$$ |$$ |  $$ |$$$$$$$  |$$ |  $$ |$$ |      $$$$$\    
+$$$$  _$$$$ |$$ |  $$ |$$  __$$< $$ |  $$ |$$ |      $$  __|   
+$$$  / \$$$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$ |      
+$$  /   \$$ | $$$$$$  |$$ |  $$ |$$$$$$$  |$$$$$$$$\ $$$$$$$$\
+\__/     \__| \______/ \__|  \__|\_______/ \________|\________|
+)" << std::endl;
+    std::cout << "=================================================================\n";
+    std::cout << "\033[0m";
+}
 
 class Wordle {
 public:
@@ -34,20 +56,15 @@ public:
             return;
         }
 
-        std::cout << "=================================================================" << std::endl;
-        std::cout << "|                         C++ WORDLE GAME                       |" << std::endl;
-        std::cout << "=================================================================" << std::endl;
-
-        std::cout << std::endl;
-        std::cout << "🎯 Current Settings:" << std::endl;
+        printBanner();
+        std::cout << "* Current Settings:" << std::endl;
         std::cout << "* Word Length: " << wordLength << std::endl;
         std::cout << "* Max Attempts: " << maxAttempts << std::endl;
-        std::cout << "* Target word allows duplicate letters: " << (allowDuplicatesInTarget ? "Yes" : "No (Hard Mode)") << std::endl;
-        std::cout << "* Dictionary Size: " << wordList.size() << " words" << std::endl;
+        std::cout << "* Target Word Allows Duplicate Letters: " << (allowDuplicatesInTarget ? "Yes" : "No (Hard Mode)") << std::endl;
+        std::cout << "* Dictionary Size: " << wordList.size() << " Words" << std::endl;
         std::cout << "-----------------------------------------------------------------" << std::endl;
         std::cout << std::endl;
-        std::cout << "You have " << maxAttempts << " attempts to guess the " << wordLength << "-letter word." << std::endl;
-        std::cout << std::endl;
+        std::cout << "You have " << maxAttempts << " Attempts to Guess The " << wordLength << "-Letter Word." << std::endl;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             std::string guess = getUserGuess(attempt);
             auto result = evaluateGuess(guess);
@@ -55,13 +72,12 @@ public:
 
             if (guess == targetWord) {
                 std::cout << std::endl;
-                std::cout << "🎉 Correct! The word was: " << targetWord << std::endl;
+                std::cout << "\033[92m Correct! The Word Was: \033[93m" << targetWord << "\033[0m" << std::endl;
                 return;
             }
         }
-
         std::cout << std::endl;
-        std::cout << "❌ Out of attempts! The word was: " << targetWord << std::endl;
+        std::cout << "\033[92m Out of Attempts! The Word Was: \033[93m" << targetWord << "\033[0m" << std::endl;
     }
 
 private:
@@ -109,15 +125,17 @@ private:
     std::string getUserGuess(int attempt) {
         std::string guess;
         while (true) {
-            std::cout << "Attempt " << attempt << "/" << maxAttempts << " (Enter " << wordLength << "-letter word): " << std::endl;
+            std::cout << "Attempt " << attempt << "/" << maxAttempts << " (Enter " << wordLength << "-Letter Word): " << std::endl;
+            std::cout << std::endl;
             std::cin >> guess;
 
             if (guess.size() == wordLength && isalphaString(guess)) {
                 std::transform(guess.begin(), guess.end(), guess.begin(), ::tolower);
                 return guess;
+                std::cout << std::endl;
             }
 
-            std::cout << "Invalid input. Enter a " << wordLength << "-letter word." << std::endl;
+            std::cout << "Invalid Input. Enter a " << wordLength << "-Letter Word." << std::endl;
         }
     }
 
@@ -175,15 +193,13 @@ int main() {
     int choice;
     bool running = true;
     while (running) {
-        std::cout << "=================================================================" << std::endl;
-        std::cout << "|                          WORDLE MENU                          |" << std::endl;
-        std::cout << "=================================================================" << std::endl;
-        std::cout << "1. Play Classic Wordle (5-letter, 6 attempts, Duplicates OK)" << std::endl;
-        std::cout << "2. Play 4-Letter Hard Mode (7 attempts, No duplicates in target)" << std::endl;
-        std::cout << "3. Play 6-Letter Challenge (6 attempts)" << std::endl;
+        printBanner();
+        std::cout << "1. Play Classic Wordle (5-Letter, 6 Attempts, Duplicates OK)" << std::endl;
+        std::cout << "2. Play 4-Letter Hard Mode (7 Attempts, No Duplicates in Target)" << std::endl;
+        std::cout << "3. Play 6-Letter Challenge (6 Attempts)" << std::endl;
         std::cout << "4. Exit Game" << std::endl;
         std::cout << "-----------------------------------------------------------------" << std::endl;
-        std::cout << "Enter your choice (1-4): " << std::endl;
+        std::cout << "Enter Your Choice (1-4): " << std::endl;
 
         if (!(std::cin >> choice)) {
             std::cin.clear();
@@ -192,16 +208,19 @@ int main() {
         }
         switch (choice) {
         case 1: {
+            clearScreen();
             Wordle game(dictionary);
             game.run();
             break;
         }
         case 2: {
+            clearScreen();
             Wordle game(dictionary, 4, 7, false);
             game.run();
             break;
         }
         case 3: {
+            clearScreen();
             Wordle game(dictionary, 6);
             game.run();
             break;
@@ -212,7 +231,7 @@ int main() {
             break;
         }
         default: {
-            std::cout << "Invalid choice. Please enter a number between 1 and 4." << std::endl;
+            std::cout << "Invalid Choice. Please Enter a Number Between 1-4." << std::endl;
             break;
         }
         }
@@ -221,3 +240,4 @@ int main() {
 
     return 0;
 }
+
