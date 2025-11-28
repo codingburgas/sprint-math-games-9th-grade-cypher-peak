@@ -1,16 +1,11 @@
 ﻿#include <iostream>
 #include <string>
 #include <vector>
-#include <random>
-#include <algorithm>
-#include <set>
-#include <limits>
-#include <cstdlib>
 #include <chrono>
 #include <thread>
 
 void clearScreen() {
-    std::system("cls");
+    std::cout << "\033[2J\033[1;1H"; /
 }
 
 void printBanner() {
@@ -25,7 +20,7 @@ $$$$  _$$$$ |$$ |  $$ |$$  __$$< $$ |  $$ |$$ |      $$  __|
 $$$  / \$$$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$ |      
 $$  /   \$$ | $$$$$$  |$$ |  $$ |$$$$$$$  |$$$$$$$$\ $$$$$$$$\
 \__/     \__| \______/ \__|  \__|\_______/ \________|\________|
-)" << std::endl;
+)" << "\n";
     std::cout << "=================================================================\n";
     std::cout << "\033[0m";
 }
@@ -40,52 +35,38 @@ public:
         wordLength(wordLength),
         allowDuplicatesInTarget(allowDuplicatesInTarget)
     {
-        wordList = filterAndValidateWordList(words);
-
-        if (wordList.empty()) {
-            std::cerr << "Error: No valid words of length " << wordLength
-                << " found in the dictionary." << std::endl;
-            targetWord = "";
-        }
-        else {
+        wordList = filterWordList(words);
+        if (!wordList.empty()) {
             targetWord = pickRandomWord();
         }
     }
 
-    void run() {
-        if (targetWord.empty()) {
-            std::cout << "Cannot start game due to dictionary error." << std::endl;
-            return;
-        }
+    bool run(int& attemptsUsed) {
+        if (targetWord.empty()) return false;
 
         printBanner();
-        std::cout << "* Current Settings:\n";
-        std::cout << "* Word Length: " << wordLength << "\n";
-        std::cout << "* Max Attempts: " << maxAttempts << "\n";
-        std::cout << "* Target Word Allows Duplicate Letters: " << (allowDuplicatesInTarget ? "Yes" : "No") << "\n";
-        std::cout << "* Dictionary Size: " << wordList.size() << " Words\n";
-        std::cout << "-----------------------------------------------------------------\n\n";
-        std::cout << "You have " << maxAttempts << " Attempts to Guess The " << wordLength << "-Letter Word.\n";
+        std::cout << "* Word Length: " << wordLength << " | Max Attempts: " << maxAttempts << "\n";
+        std::cout << "You have " << maxAttempts << " attempts to guess the word.\n";
 
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        attemptsUsed = 0;
 
+        for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+            attemptsUsed++;
             std::string guess = getUserGuess(attempt);
 
-            if (guess.empty()) {
-
-                continue;
-            }
+            if (guess.empty()) continue;
 
             auto result = evaluateGuess(guess);
             printResult(guess, result);
 
             if (guess == targetWord) {
-                std::cout << "\n\033[92m Correct! The Word Was: \033[93m" << targetWord << "\033[0m\n";
-                return;
+                std::cout << "\n \033[32m Correct! The Word Was: " << targetWord << "\033[32m \n";
+                return true;
             }
         }
 
-        std::cout << "\n\033[92m Out of Attempts! The Word Was: \033[93m" << targetWord << "\033[0m\n";
+        std::cout << "\n \033[31m Out of attempts! The Word Was: " << targetWord << "\033[31m \n";
+        return false;
     }
 
 private:
@@ -96,39 +77,48 @@ private:
     int maxAttempts;
     int wordLength;
     bool allowDuplicatesInTarget;
-
     int guessTimeLimit = 30;
 
     bool hasDuplicateLetters(const std::string& word) const {
-        std::set<char> uniqueChars;
+        bool seen[26] = { false };
         for (char c : word) {
-            if (uniqueChars.count(c)) return true;
-            uniqueChars.insert(c);
+            int idx = c - 'a';
+            if (seen[idx]) return true;
+            seen[idx] = true;
         }
         return false;
     }
 
-    std::vector<std::string> filterAndValidateWordList(const std::vector<std::string>& words) {
-        std::vector<std::string> filteredList;
-
-        for (const auto& word : words) {
-            if (word.length() != wordLength) continue;
-            if (!allowDuplicatesInTarget && hasDuplicateLetters(word)) continue;
-
-            std::string lowerWord = word;
-            std::transform(lowerWord.begin(), lowerWord.end(), lowerWord.begin(), ::tolower);
-            if (isalphaString(lowerWord)) filteredList.push_back(lowerWord);
+    bool isAlphaString(const std::string& s) {
+        for (char c : s) {
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                return false;
         }
-        return filteredList;
+        return true;
+    }
+
+    void lowerString(std::string& s) {
+        for (char& c : s)
+            if (c >= 'A' && c <= 'Z')
+                c += ('a' - 'A');
+    }
+
+    std::vector<std::string> filterWordList(const std::vector<std::string>& words) {
+        std::vector<std::string> out;
+        for (std::string w : words) {
+            if (w.length() != wordLength) continue;
+            if (!allowDuplicatesInTarget && hasDuplicateLetters(w)) continue;
+            lowerString(w);
+            if (isAlphaString(w)) out.push_back(w);
+        }
+        return out;
     }
 
     std::string pickRandomWord() {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, wordList.size() - 1);
-        return wordList[dist(gen)];
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::mt19937 rng(seed);
+        return wordList[rng() % wordList.size()];
     }
-
 
     bool runGuessTimer(bool& expiredFlag) {
         using namespace std::chrono;
@@ -142,12 +132,11 @@ private:
             int remaining = guessTimeLimit - elapsed;
 
             if (remaining != lastShown && remaining >= 0) {
-                std::cout << "\r Time Left: " << remaining << "s  " << std::flush;
+                std::cout << "\rTime Left: " << remaining << "s  " << std::flush;
                 lastShown = remaining;
             }
-
             if (remaining <= 0) {
-                std::cout << "\n Time is up!\n";
+                std::cout << "\nTime is up!\n";
                 expiredFlag = true;
                 return false;
             }
@@ -158,38 +147,24 @@ private:
     }
 
     std::string getUserGuess(int attempt) {
-        std::string guess;
-        bool timerExpired = false;
-
         std::cout << "\nAttempt " << attempt << "/" << maxAttempts
-            << " (Enter " << wordLength << "-Letter Word, "
-            << guessTimeLimit << "s Timer)\n";
+            << " (" << guessTimeLimit << "s Timer)\n";
 
-        std::thread timerThread([&]() {
-            runGuessTimer(timerExpired);
-            });
+        bool expired = false;
+        std::string guess;
 
+        std::thread timerThread([&]() { runGuessTimer(expired); });
         std::cin >> guess;
-        timerExpired = true;
+        expired = true;
         timerThread.join();
 
-        if (guess.size() == 0 || timerExpired == true && guess.size() != wordLength) {
-            std::cout << "❌ Attempt failed due to timeout.\n";
+        if (guess.length() != wordLength || !isAlphaString(guess)) {
+            std::cout << "Invalid input.\n";
             return "";
         }
 
-        if (guess.size() == wordLength && isalphaString(guess)) {
-            std::transform(guess.begin(), guess.end(), guess.begin(), ::tolower);
-            return guess;
-        }
-
-        std::cout << "Invalid Input. Enter a " << wordLength << "-Letter Word.\n";
-        return getUserGuess(attempt);
-    }
-
-
-    bool isalphaString(const std::string& s) {
-        return std::all_of(s.begin(), s.end(), ::isalpha);
+        lowerString(guess);
+        return guess;
     }
 
     std::vector<LetterState> evaluateGuess(const std::string& guess) {
@@ -205,7 +180,7 @@ private:
 
         for (int i = 0; i < wordLength; i++) {
             if (result[i] == LetterState::Correct) continue;
-            auto pos = temp.find(guess[i]);
+            size_t pos = temp.find(guess[i]);
             if (pos != std::string::npos) {
                 result[i] = LetterState::Present;
                 temp[pos] = '*';
@@ -217,76 +192,74 @@ private:
 
     void printResult(const std::string& guess, const std::vector<LetterState>& result) {
         for (int i = 0; i < wordLength; i++) {
-            if (result[i] == LetterState::Correct) {
+            if (result[i] == LetterState::Correct)
                 std::cout << "\033[42m\033[97m " << guess[i] << " \033[0m";
-            }
-            else if (result[i] == LetterState::Present) {
+            else if (result[i] == LetterState::Present)
                 std::cout << "\033[43m\033[97m " << guess[i] << " \033[0m";
-            }
-            else {
+            else
                 std::cout << "\033[100m\033[97m " << guess[i] << " \033[0m";
-            }
         }
         std::cout << "\n";
     }
 };
 
-
 int main() {
     std::vector<std::string> dictionary = {
-        "apple", "brave", "cable", "trace", "light", "stone", "sound", "water", "plane", "point",
-        "grape", "fruit", "house", "chair", "table", "dream", "quick", "watch", "party", "smile",
-        "ten", "cat", "dog", "sun",
-        "jinx", "four", "word",
-        "sassy", "occur",
-        "abduct", "bright", "planet",
+        "apple","brave","cable","trace","light","stone","sound","water","plane","point",
+        "grape","fruit","house","chair","table","dream","quick","watch","party","smile",
+        "jinx","four","word","fizz","bolt","maze","clip","haze",
+        "sassy","occur","abduct","bright","planet"
     };
 
     int choice;
     bool running = true;
 
+    int totalWins = 0, totalPoints = 0, totalLosses = 0, currentStreak = 0;
+
     while (running) {
         printBanner();
-        std::cout << "1. Play Classic Wordle (5-Letter, 6 Attempts)\n";
-        std::cout << "2. Play 4-Letter Hard Mode (7 Attempts, No Duplicates)\n";
-        std::cout << "3. Play 6-Letter Challenge (6 Attempts)\n";
-        std::cout << "4. Exit Game\n";
+        std::cout << "Score: Wins=" << totalWins << " | Losses=" << totalLosses
+            << " | Streak=" << currentStreak << " | Points=" << totalPoints << "\n";
         std::cout << "-----------------------------------------------------------------\n";
-        std::cout << "Enter Your Choice (1-4): ";
+        std::cout << "1. Play Classic Wordle\n";
+        std::cout << "2. Play 4-letter Hard Mode\n";
+        std::cout << "3. Play 6-letter Challenge\n";
+        std::cout << "4. Exit\n";
+        std::cout << "-----------------------------------------------------------------\n";
+        std::cout << "Enter Choice: ";
 
         if (!(std::cin >> choice)) {
             std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            choice = 0;
+            std::string dump;
+            std::cin >> dump;
+            continue;
         }
+
+        Wordle game(dictionary);
+        int maxAttempts = 6;
 
         switch (choice) {
-        case 1:
-            clearScreen();
-            Wordle(dictionary).run();
-            break;
-
-        case 2:
-            clearScreen();
-            Wordle(dictionary, 4, 7, false).run();
-            break;
-
-        case 3:
-            clearScreen();
-            Wordle(dictionary, 6).run();
-            break;
-
-        case 4:
-            running = false;
-            std::cout << "Exiting Wordle Game. Goodbye!\n";
-            break;
-
-        default:
-            std::cout << "Invalid Choice. Try again.\n";
-            break;
+        case 1: clearScreen(); game = Wordle(dictionary, 5, 6, true); break;
+        case 2: clearScreen(); game = Wordle(dictionary, 4, 7, false); break;
+        case 3: clearScreen(); game = Wordle(dictionary, 6, 6, true); break;
+        case 4: running = false; continue;
+        default: continue;
         }
 
-        std::cout << "\n";
+        int attemptsUsed = 0;
+        bool won = game.run(attemptsUsed);
+
+        if (won) {
+            totalWins++;
+            currentStreak++;
+            int pts = (maxAttempts - attemptsUsed + 1) * 10;
+            totalPoints += pts;
+            std::cout << "You earned " << pts << " points!\n";
+        }
+        else {
+            totalLosses++;
+            currentStreak = 0;
+        }
     }
 
     return 0;
