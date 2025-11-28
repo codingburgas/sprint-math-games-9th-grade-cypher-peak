@@ -3,9 +3,10 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <cstdlib> // for rand()
 
 void clearScreen() {
-    std::cout << "\033[2J\033[1;1H"; /
+    std::cout << "\033[2J\033[1;1H";
 }
 
 void printBanner() {
@@ -28,16 +29,21 @@ $$  /   \$$ | $$$$$$  |$$ |  $$ |$$$$$$$  |$$$$$$$$\ $$$$$$$$\
 class Wordle {
 public:
     Wordle(const std::vector<std::string>& words,
+        const std::vector<std::string>& definitions,
+        const std::vector<std::string>& categories,
         int wordLength = 5,
         int attempts = 6,
         bool allowDuplicatesInTarget = true)
         : maxAttempts(attempts),
         wordLength(wordLength),
-        allowDuplicatesInTarget(allowDuplicatesInTarget)
+        allowDuplicatesInTarget(allowDuplicatesInTarget),
+        wordDefinitions(definitions),
+        wordCategories(categories)
     {
         wordList = filterWordList(words);
         if (!wordList.empty()) {
-            targetWord = pickRandomWord();
+            targetIndex = rand() % wordList.size();
+            targetWord = wordList[targetIndex];
         }
     }
 
@@ -53,8 +59,10 @@ public:
         for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
             attemptsUsed++;
             std::string guess = getUserGuess(attempt);
-
             if (guess.empty()) continue;
+
+            // Show hints
+            showHint(attempt);
 
             auto result = evaluateGuess(guess);
             printResult(guess, result);
@@ -73,7 +81,10 @@ private:
     enum class LetterState { Correct, Present, Absent };
 
     std::vector<std::string> wordList;
+    std::vector<std::string> wordDefinitions;
+    std::vector<std::string> wordCategories;
     std::string targetWord;
+    int targetIndex;
     int maxAttempts;
     int wordLength;
     bool allowDuplicatesInTarget;
@@ -112,12 +123,6 @@ private:
             if (isAlphaString(w)) out.push_back(w);
         }
         return out;
-    }
-
-    std::string pickRandomWord() {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::mt19937 rng(seed);
-        return wordList[rng() % wordList.size()];
     }
 
     bool runGuessTimer(bool& expiredFlag) {
@@ -201,6 +206,16 @@ private:
         }
         std::cout << "\n";
     }
+
+    void showHint(int attempt) {
+        if (attempt == 2 && targetIndex < wordCategories.size())
+            std::cout << "\033[35mHint (Category): " << wordCategories[targetIndex] << "\033[0m\n";
+        if (attempt == 3 && targetIndex < wordDefinitions.size())
+            std::cout << "\033[36mHint (Definition): " << wordDefinitions[targetIndex] << "\033[0m\n";
+        if (attempt == 4)
+            std::cout << "\033[33mHint (Letter at position " << (rand() % wordLength + 1)
+            << "): " << targetWord[rand() % wordLength] << "\033[0m\n";
+    }
 };
 
 int main() {
@@ -209,6 +224,48 @@ int main() {
         "grape","fruit","house","chair","table","dream","quick","watch","party","smile",
         "jinx","four","word","fizz","bolt","maze","clip","haze",
         "sassy","occur","abduct","bright","planet"
+    };
+
+    std::vector<std::string> definitions = {
+        "A common red, green, or yellow fruit.",
+        "Showing courage.",
+        "A rope or wire for connection.",
+        "To follow a path.",
+        "Visible electromagnetic radiation.",
+        "A hard mineral material.",
+        "Audible vibration in air.",
+        "Essential liquid for life.",
+        "Aircraft that flies in the sky.",
+        "A specific location in space.",
+        "A small sweet fruit.",
+        "Edible part of a plant.",
+        "A building for living.",
+        "Furniture for sitting.",
+        "Flat-topped furniture for use.",
+        "Series of thoughts while sleeping.",
+        "Moving fast.",
+        "Timepiece worn on wrist.",
+        "A social gathering.",
+        "Expression of happiness.",
+        "Unlucky or mischievous.",
+        "Number 4.",
+        "A single word.",
+        "Fizzing sound.",
+        "A lightning bolt.",
+        "A maze or puzzle.",
+        "Cut or trim.",
+        "Mist or haze in the air.",
+        "Bold or cheeky behavior.",
+        "To happen again.",
+        "To kidnap someone.",
+        "Shining brightly.",
+        "A celestial body orbiting a star."
+    };
+
+    std::vector<std::string> categories = {
+        "fruit","adjective","object","verb","science","object","sound","liquid","aircraft","position",
+        "fruit","food","building","furniture","furniture","dream","action","object","event","expression",
+        "luck","number","word","sound","object","puzzle","action","weather","adjective","verb","action","adjective","astronomy"
     };
 
     int choice;
@@ -235,13 +292,13 @@ int main() {
             continue;
         }
 
-        Wordle game(dictionary);
+        Wordle game(dictionary, definitions, categories);
         int maxAttempts = 6;
 
         switch (choice) {
-        case 1: clearScreen(); game = Wordle(dictionary, 5, 6, true); break;
-        case 2: clearScreen(); game = Wordle(dictionary, 4, 7, false); break;
-        case 3: clearScreen(); game = Wordle(dictionary, 6, 6, true); break;
+        case 1: clearScreen(); game = Wordle(dictionary, definitions, categories, 5, 6, true); break;
+        case 2: clearScreen(); game = Wordle(dictionary, definitions, categories, 4, 7, false); break;
+        case 3: clearScreen(); game = Wordle(dictionary, definitions, categories, 6, 6, true); break;
         case 4: running = false; continue;
         default: continue;
         }
