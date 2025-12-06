@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <cstdlib> 
+#include <fstream>
 
 void clearScreen() {
     std::cout << "\033[2J\033[1;1H";
