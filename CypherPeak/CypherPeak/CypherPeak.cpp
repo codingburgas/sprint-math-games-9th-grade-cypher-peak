@@ -61,7 +61,6 @@ public:
             std::string guess = getUserGuess(attempt);
             if (guess.empty()) continue;
 
-
             showHint(attempt);
 
             auto result = evaluateGuess(guess);
@@ -69,12 +68,12 @@ public:
 
             if (guess == targetWord) {
                 clearScreen();
-                std::cout << "\033[32m" << "Correct! The Word Was : \033[33m " << targetWord << "\033[32m\n";
+                std::cout << "\033[32m" << "Correct! The Word Was: \033[33m " << targetWord << "\033[32m\n";
                 return true;
             }
         }
 
-        std::cout << "\033[31m" << "Out of attempts! The Word Was : \033[33m " << targetWord << "\033[31m \n";
+        std::cout << "\033[31m" << "Out of attempts! The Word Was: \033[33m " << targetWord << "\033[31m \n";
         return false;
     }
 
@@ -138,7 +137,12 @@ private:
             int remaining = guessTimeLimit - elapsed;
 
             if (remaining != lastShown && remaining >= 0) {
-                std::cout << "\033[32m\rTime Left: " << "\033[93m" << remaining << "s  " << "\033[0m" << std::flush;
+                std::cout << "\033[s";
+                std::cout << "\033[1A";
+                std::cout << "\r\033[2K";
+                std::cout << "\033[32mTime Left: \033[93m"
+                    << remaining << "s\033[0m";
+                std::cout << "\033[u" << std::flush;
                 lastShown = remaining;
             }
             if (remaining <= 0) {
@@ -155,6 +159,9 @@ private:
     std::string getUserGuess(int attempt) {
         std::cout << "\nAttempt " << attempt << "/" << maxAttempts
             << " (" << guessTimeLimit << "s Timer)\n";
+        std::cout << "\n";
+
+        std::cout << "\033[32m> \033[0m" << std::flush;
 
         bool expired = false;
         std::string guess;
@@ -253,9 +260,9 @@ int main() {
         "A single word.",
         "Fizzing sound.",
         "A lightning bolt.",
-        "A maze or puzzle.",
+        "A puzzle.",
         "Cut or trim.",
-        "Mist or haze in the air.",
+        "Mist in the air.",
         "Bold or cheeky behavior.",
         "To happen again.",
         "To kidnap someone.",
