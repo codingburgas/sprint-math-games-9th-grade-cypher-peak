@@ -3,7 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
-#include <cstdlib> // for rand()
+#include <cstdlib> 
 
 void clearScreen() {
     std::cout << "\033[2J\033[1;1H";
@@ -61,19 +61,19 @@ public:
             std::string guess = getUserGuess(attempt);
             if (guess.empty()) continue;
 
-            // Show hints
+
             showHint(attempt);
 
             auto result = evaluateGuess(guess);
             printResult(guess, result);
 
             if (guess == targetWord) {
-                std::cout << "\n \033[32m Correct! The Word Was: " << targetWord << "\033[32m \n";
+                std::cout << " \033[32m Correct! The Word Was: " << targetWord << "\033[32m \n";
                 return true;
             }
         }
 
-        std::cout << "\n \033[31m Out of attempts! The Word Was: " << targetWord << "\033[31m \n";
+        std::cout << "\033[31m Out of attempts! The Word Was: " << targetWord << "\033[31m \n";
         return false;
     }
 
