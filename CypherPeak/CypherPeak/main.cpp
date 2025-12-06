@@ -3,8 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
-#include <cstdlib> 
-#include <fstream>
+#include <cstdlib>
 
 void clearScreen() {
     std::cout << "\033[2J\033[1;1H";
@@ -236,39 +235,39 @@ int main() {
     };
 
     std::vector<std::string> definitions = {
-        "A common red, green, or yellow fruit.",
+        "A red, green, or yellow fruit.",
         "Showing courage.",
-        "A rope or wire for connection.",
+        "A rope or wire for connections.",
         "To follow a path.",
         "Visible electromagnetic radiation.",
         "A hard mineral material.",
-        "Audible vibration in air.",
+        "Audible vibration in the air.",
         "Essential liquid for life.",
         "Aircraft that flies in the sky.",
         "A specific location in space.",
-        "A small sweet fruit.",
+        "A small, sweet fruit.",
         "Edible part of a plant.",
-        "A building for living.",
-        "Furniture for sitting.",
+        "A building meant for living.",
+        "Furniture meant for sitting.",
         "Flat-topped furniture for use.",
         "Series of thoughts while sleeping.",
-        "Moving fast.",
+        "Moving very fast.",
         "Timepiece worn on wrist.",
         "A social gathering.",
         "Expression of happiness.",
         "Unlucky or mischievous.",
-        "Number 4.",
+        "One-word number.",
         "A single word.",
         "Fizzing sound.",
         "A lightning bolt.",
         "A puzzle.",
-        "Cut or trim.",
-        "Mist in the air.",
+        "A cut or trim.",
+        "A mist in the air.",
         "Bold or cheeky behavior.",
         "To happen again.",
         "To kidnap someone.",
         "Shining brightly.",
-        "A celestial body orbiting a star."
+        "A celestial body orbiting any star."
     };
 
     std::vector<std::string> categories = {
@@ -284,13 +283,13 @@ int main() {
 
     while (running) {
         printBanner();
-        std::cout << "\033[93m Score: Wins=" << totalWins << " | Losses=" << totalLosses
-            << " | Streak=" << currentStreak << " | Points=" << totalPoints << "\033[0m \n";
+        std::cout << "\033[93m Score: Wins = " << totalWins << " | Losses = " << totalLosses
+            << " | Streak = " << currentStreak << " | Points = " << totalPoints << "\033[0m \n";
         std::cout << "-----------------------------------------------------------------\n";
         std::cout << "1. Play Classic Wordle\n";
-        std::cout << "2. Play 4-letter Hard Mode\n";
-        std::cout << "3. Play 6-letter Challenge\n";
-        std::cout << "4. Exit\n";
+        std::cout << "2. Play 4-Letter Hard Mode\n";
+        std::cout << "3. Play 6-Letter Challenge\n";
+        std::cout << "4. Quit The Game\n";
         std::cout << "-----------------------------------------------------------------\n";
         std::cout << "Enter Choice: ";
 
