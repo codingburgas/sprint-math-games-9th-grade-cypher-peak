@@ -51,8 +51,8 @@ public:
         if (targetWord.empty()) return false;
 
         printBanner();
-        std::cout << "* Word Length: " << wordLength << " | Max Attempts: " << maxAttempts << "\n";
-        std::cout << "You have " << maxAttempts << " attempts to guess the word.\n";
+        std::cout << "\033[93m| Word Length: " << wordLength << " | Max Attempts: " << maxAttempts << "\n";
+        std::cout << "| You have " << maxAttempts << " attempts to guess the word." << "\033[0m\n";
 
         attemptsUsed = 0;
 
@@ -68,12 +68,13 @@ public:
             printResult(guess, result);
 
             if (guess == targetWord) {
-                std::cout << " \033[32m Correct! The Word Was: " << targetWord << "\033[32m \n";
+                clearScreen();
+                std::cout << "\033[32m" << "Correct! The Word Was : \033[33m " << targetWord << "\033[32m\n";
                 return true;
             }
         }
 
-        std::cout << "\033[31m Out of attempts! The Word Was: " << targetWord << "\033[31m \n";
+        std::cout << "\033[31m" << "Out of attempts! The Word Was : \033[33m " << targetWord << "\033[31m \n";
         return false;
     }
 
@@ -137,7 +138,7 @@ private:
             int remaining = guessTimeLimit - elapsed;
 
             if (remaining != lastShown && remaining >= 0) {
-                std::cout << "\rTime Left: " << remaining << "s  " << std::flush;
+                std::cout << "\033[32m\rTime Left: " << "\033[93m" << remaining << "s  " << "\033[0m" << std::flush;
                 lastShown = remaining;
             }
             if (remaining <= 0) {
@@ -275,8 +276,8 @@ int main() {
 
     while (running) {
         printBanner();
-        std::cout << "Score: Wins=" << totalWins << " | Losses=" << totalLosses
-            << " | Streak=" << currentStreak << " | Points=" << totalPoints << "\n";
+        std::cout << "\033[93m Score: Wins=" << totalWins << " | Losses=" << totalLosses
+            << " | Streak=" << currentStreak << " | Points=" << totalPoints << "\033[0m \n";
         std::cout << "-----------------------------------------------------------------\n";
         std::cout << "1. Play Classic Wordle\n";
         std::cout << "2. Play 4-letter Hard Mode\n";
@@ -300,7 +301,7 @@ int main() {
         case 2: clearScreen(); game = Wordle(dictionary, definitions, categories, 4, 7, false); break;
         case 3: clearScreen(); game = Wordle(dictionary, definitions, categories, 6, 6, true); break;
         case 4: running = false; continue;
-        default: continue;
+        default: clearScreen();  continue;
         }
 
         int attemptsUsed = 0;
