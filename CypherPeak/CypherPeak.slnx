@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="CypherPeak/CypherPeak.vcxproj" Id="a074e1b5-58b6-4caa-b0b7-97ab5c501e18" />
-</Solution>
