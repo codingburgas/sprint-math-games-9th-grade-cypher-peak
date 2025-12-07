@@ -1,9 +1,4 @@
-﻿#include <iostream>
-#include <string>
-#include <vector>
-#include <chrono>
-#include <thread>
-#include <cstdlib>
+﻿#include "include.hpp"
 
 void clearScreen() {
     std::cout << "\033[2J\033[1;1H";
